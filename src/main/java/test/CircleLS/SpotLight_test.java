@@ -6,7 +6,6 @@
 package test.CircleLS;
 
 import color.implementations.SPDrange;
-import color.implementations.SPDsingle;
 import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -17,10 +16,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
-import light.LightSource;
 import light.implementations.SimpleSpotLight;
-import light.implementations.Sky;
-import math_and_utils.Math3dUtil;
 import renderer.Scene;
 import color.implementations.CIE1931StandardObserver;
 import javafx.stage.Stage;
@@ -38,8 +34,6 @@ import java.io.File;
 import java.io.IOException;
 
 import static javafx.application.Application.launch;
-import static math_and_utils.Math3dUtil.createNormalTransofrmMatrix;
-import static math_and_utils.Math3dUtil.createRotXMatix;
 
 /**
  * @author rasto
@@ -134,7 +128,7 @@ public class SpotLight_test extends Application {
                 90);
         ls.setPower(50000);
 
-        SimplifiedRenderer_Scene scene = new SimplifiedRenderer_Scene();
+        DefaultScene scene = new DefaultScene();
         scene.addCamera(cam);
         scene.addLightSource(ls);
         scene.addSceneObject(
