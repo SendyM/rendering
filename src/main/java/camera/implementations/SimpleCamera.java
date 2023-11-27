@@ -15,10 +15,6 @@ import java.util.Vector;
 
 import static math_and_utils.Math3dUtil.*;
 
-/**
- *
- * @author rasto
- */
 public class SimpleCamera extends Camera {
     protected double[][] camToWorld, worldToCam, camToWorld_direction;
     protected int w,h;
@@ -67,12 +63,6 @@ public class SimpleCamera extends Camera {
         camToWorld = new double[][]{right.V3toM4(0), up.V3toM4(0), forward.V3toM4(0), from.V3toM4(1)};
         camToWorld_direction = createNormalTransofrmMatrix(camToWorld);
         worldToCam = Minvert(camToWorld);
-        /*for(int a = 0;a < 4;++a){
-            for(int b = 0;b < 4;++b){
-                System.out.print(camToWorld[a][b] + " ");
-            }
-            System.out.println();
-        }*/
 
         w = pixelwidth; h = pixelheight;
         Aw = AngleX; Ah = AngleY;
@@ -95,20 +85,9 @@ public class SimpleCamera extends Camera {
         PixelsCW = w/ (canvasWhalf*2.0);
         PixelsCH = h/ (canvasHhalf*2.0);
     }
-    
-    public void setLS(LightSource lsm){}
 
     private boolean watch(Vector3 _origin, Vector3 _direction, double lambda){
         Vector3 b_origin = _origin.multiplyByM4(worldToCam);
-        //Vector3 b_direction = _direction.multiplyByM4(camToWorld_direction);
-        
-        /*
-        Vector3 b_direction = _direction.multiplyByM4(worldToCam);
-        //remove translation form direction vector   
-            b_direction.x -= _direction.x*camToWorld[3][0];
-            b_direction.y -= _direction.x*camToWorld[3][1];
-            b_direction.z -= _direction.x*camToWorld[3][2];
-        b_direction = b_direction.normalize();*/
         
         //check if direction is correct
         if(cdir.dot(_direction) >0 )
@@ -157,14 +136,8 @@ public class SimpleCamera extends Camera {
             //to be stored in pixels, but we use only one LS, so this untroduces only small error
             double newY = (lasthitspds).spdshits * (b.source.getPower()/ b.source.getNumberOfBeams());
             lasthitspds.setY( newY);
-            
         }
         return r;
-    }
-
-    @Override
-    public Beam getNextBeam() {
-        return null;
     }
 
     //@Override
@@ -186,39 +159,11 @@ public class SimpleCamera extends Camera {
         return coloredpixels;
     }
     
-    /**
-     * 
-     * @return how many times was received Beam that was visible to camera 
-     */
-    public double getNumberOfHits(){
-        return hits;
-    }
-    
     public Vector3 GetPosition(){
         return new Vector3(camToWorld[3]);
     }
-    
-    /**
-     * Clears camera pixels and sets hits to 0
-     */
-    public void clear(){
-        hits = 0;
-        for(int a = 0;a < spds.size();++a){
-            for(int b = 0;b < spds.get(a).size();++b){
-               spds.get(a).get(b).clear();
-            }
-        }
-    }
-    
-    /**
-     * 
-     * @return double[4][4] camToWorld
-     */
-    public double[][] GetCameraMatrix(){
-        return camToWorld;
-    }
-    
-    //mabe replace with just 5element array ? 1 such array would cost arount 5*64*(8^-1)*(1/1000^3) GB of ram
+
+
     /**
      * Stores pixel XYZ, hit and POWEEER data
      */

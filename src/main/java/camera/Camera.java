@@ -12,6 +12,4 @@ public abstract class Camera implements java.io.Serializable{
     public int[][][] getPixels(){return pixels;}
 
     public abstract boolean watch(Beam b);
-
-    public abstract Beam getNextBeam();
 }

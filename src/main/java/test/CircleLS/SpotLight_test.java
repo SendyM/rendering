@@ -6,6 +6,7 @@
 package test.CircleLS;
 
 import color.implementations.SPDrange;
+import color.implementations.SPDsingle;
 import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -16,7 +17,10 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
+import light.LightSource;
 import light.implementations.SimpleSpotLight;
+import light.implementations.Sky;
+import math_and_utils.Math3dUtil;
 import renderer.Scene;
 import color.implementations.CIE1931StandardObserver;
 import javafx.stage.Stage;
@@ -25,6 +29,7 @@ import camera.Camera;
 import camera.implementations.SimpleCamera;
 import renderer.implementations.DefaultScene;
 import renderer.implementations.SimpleSceneObject;
+import renderer.implementations.SimplifiedRenderer_Scene;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -33,9 +38,10 @@ import java.io.File;
 import java.io.IOException;
 
 import static javafx.application.Application.launch;
+import static math_and_utils.Math3dUtil.createNormalTransofrmMatrix;
+import static math_and_utils.Math3dUtil.createRotXMatix;
 
 /**
- *
  * @author rasto
  */
 public class SpotLight_test extends Application {
@@ -43,11 +49,13 @@ public class SpotLight_test extends Application {
     public static void main(String[] args) {
         launch(args);
     }
+
     @Override
-    public void start(Stage stage){
+    public void start(Stage stage) {
         System.out.println("Starting test");
         test(stage);
     }
+
     public static void processWidnow(Stage primaryStage, Scene scene, Camera camera, String filename) {
         //JAVAFX*************************************************************************
         primaryStage.setTitle("Renderer");
@@ -74,7 +82,7 @@ public class SpotLight_test extends Application {
                 System.out.println("This iteration took " + (endTime * 0.000000001) + " seconds");
                 save(camera, filename);
                 lab.setText(Integer.toString((Integer.valueOf(lab.getText()) + togen)));
-                imageView.setImage(new Image("file:CLS.png" ));
+                imageView.setImage(new Image("file:" + filename));
 
                 /*System.out.println("# added " + (camera.getNumberOfHits() - lasth) + " hits, resulting in " + camera.getNumberOfHits()
                         + " total hits. This iteration took " + (endTime * 0.000000001) + " seconds");*/
@@ -105,36 +113,57 @@ public class SpotLight_test extends Application {
 
         //save image
         try {
-            File outputfile = new File("SL_output.png");
+            File outputfile = new File(location);
             System.out.println("Saving image to " + outputfile.getAbsolutePath());
             boolean result = ImageIO.write(image, "png", outputfile);
-            if(result){
+            if (result) {
                 System.out.println("Image saved");
-            }else {
+            } else {
                 System.out.println("Image not saved");
             }
 
-        } catch (IOException e) {
+        } catch (IOException ignored) {
         }
     }
 
     public void test(Stage primaryStage) {
-        Camera cam = new SimpleCamera(new Vector3(0, 0, 10), new Vector3(0, 0, -1), 500, 500, 90, 90, new CIE1931StandardObserver());
+        Camera cam = new SimpleCamera(new Vector3(0, 0, 0), new Vector3(0, 0, -1), 500, 500, 90, 90, new CIE1931StandardObserver());
         SimpleSpotLight ls = new SimpleSpotLight(new SPDrange(400, 700),
-                new Vector3(0, 0, 0).V3toM(),
+                new Vector3(-1, 0, 0).V3toM(),
                 new Vector3(0, 0, -1).V3toM(),
                 90);
-        ls.setPower(30000);
+        ls.setPower(50000);
 
-        DefaultScene scene = new DefaultScene();
+        SimplifiedRenderer_Scene scene = new SimplifiedRenderer_Scene();
         scene.addCamera(cam);
         scene.addLightSource(ls);
         scene.addSceneObject(
                 new SimpleSceneObject(
-                new Vector3(10, 10, -1),
-                new Vector3(-10, 10, -1),
-                new Vector3(-10, -10, -1),
-                new Vector3(10, -10, -1))
+                        new Vector3(0, 10, -7),
+                        new Vector3(6, 10, 0),
+                        new Vector3(6, -10, 0),
+                        new Vector3(0, -10, -7))
+        );
+        scene.addSceneObject(
+                new SimpleSceneObject(
+                        new Vector3(0, 10, -7),
+                        new Vector3(-6, 10, 0),
+                        new Vector3(-6, -10, 0),
+                        new Vector3(0, -10, -7))
+        );
+        scene.addSceneObject(
+                new SimpleSceneObject(
+                        new Vector3(-6, -2, 0),
+                        new Vector3(0, -2, -10),
+                        new Vector3(6, -2, 0),
+                        new Vector3(0, -2, 0))
+        );
+        scene.addSceneObject(
+                new SimpleSceneObject(
+                        new Vector3(0, -1, -3),
+                        new Vector3(1, -1, -2.5),
+                        new Vector3(1, -2, -2.5),
+                        new Vector3(0, -2, -3))
         );
 
         processWidnow(primaryStage, scene, cam, "SL_output.png");

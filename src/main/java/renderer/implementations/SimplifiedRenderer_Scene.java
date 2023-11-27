@@ -5,47 +5,54 @@
  */
 package renderer.implementations;
 
-import camera.Camera;
-import light.implementations.Beam;
-import light.LightSource;
-import math_and_utils.Math3dUtil.Vector3;
-import math_and_utils.Pair;
-import renderer.*;
-
 import java.util.ArrayList;
 import java.util.List;
-
+import light.LightSource;
+import math_and_utils.Math3dUtil;
 import static math_and_utils.Math3dUtil.reflect;
 import static math_and_utils.Math3dUtil.refract;
+import light.implementations.Beam;
+import math_and_utils.Pair;
+import camera.Camera;
+import renderer.Scene;
+import renderer.SceneObject;
+import renderer.SceneObjectProperty;
+import renderer.Triangle;
 
-public class DefaultScene implements Scene {
-    public List<Camera> cam_list;
+/**
+ *
+ * @author rasto
+ */
+public class SimplifiedRenderer_Scene implements Scene {
 
-    public List<LightSource> ls_list;
-
+    public Camera cam;
+    public LightSource ls;
+    /**
+     * scene objects list
+     */
     public List<SceneObject> so_list;
-
-    //max number of iterations
-    public int maxiter = 6;
-
-    //if enabled, beams will be sent to camera even if they shouldn't
+    /**
+     * maximum iteration, especially useful to prevent infinite loops with Total
+     * Reflection
+     */
+    public int maxiter = 10;
+    /**
+     * If enabled, will send beam directly to camera as soon, as beam hits
+     * object with (both) null side properties
+     */
     public boolean forcesendtocamera = false;
 
-    // If enabled, reflected beams will lose some power
-    public boolean refl_fading = true;
-
-    public DefaultScene() {
-        cam_list = new ArrayList<Camera>();
-        ls_list = new ArrayList<LightSource>();
+    //public Map<Double, Double> ltrans = new TreeMap<Double, Double>();
+    public SimplifiedRenderer_Scene() {
         so_list = new ArrayList<SceneObject>();
     }
 
     public void addLightSource(LightSource ls) {
-        ls_list.add(ls);
+        this.ls = ls;
     }
 
     public void addCamera(Camera c) {
-        cam_list.add(c);
+        this.cam = c;
     }
 
     public void addSceneObject(SceneObject so) {
@@ -53,15 +60,18 @@ public class DefaultScene implements Scene {
     }
 
     public void next() {
-        Beam b = ls_list.get(0).getNextBeam();
+        Beam b = ls.getNextBeam();
         Triangle ignoredT = null;
         double iter = 0;
 
         //double sl = b.lambda;
-        boolean camerabema = false;
+        boolean cameraBeam = false;
         //System.out.print(b.lambda + " ");
 
         do {
+            if (iter > 2) {
+                System.out.println(iter);
+            }
             Pair<Triangle, Double> closestT = Pair.createPair(null, Double.MAX_VALUE);
 
             for (SceneObject so : so_list) {
@@ -73,25 +83,25 @@ public class DefaultScene implements Scene {
                     }
                 }
             }
-            //if beam doesn't hit any triangle
+
+            //if beam doesnt hit any triangle
             if (closestT.first() == null) {
-                //if beam should go to camera
-                if (camerabema) {
-                    //send beam to cameras
-                    for (Camera cam : cam_list) {
-                        cam.watch(b);
-                    }
+                //if beam shoudl go to camera
+                if (cameraBeam) {
+                    cam.watch(b);
                 }
                 return;
             } else //if beam hit something
             {
                 //if beam should have had free view of camera, but it doesnt
-                if (camerabema) {
+                if (cameraBeam) {
                     return;
                 }
             }
 
-            Vector3 intersectionPoint = b.origin.add((b.direction).scale(closestT.second()));
+            Math3dUtil.Vector3 intersectionPoint = b.origin.add((b.direction).scale(closestT.second()));
+            double cos = Math.abs(b.direction.normalize().dot(closestT.first().normal));
+            b.power *= cos;
 
             SceneObjectProperty side = closestT.first().parent.getSideProperty(closestT.first(), b.direction);
             SceneObjectProperty oside = closestT.first().parent.getOtherSideProperty(closestT.first(), b.direction);
@@ -100,8 +110,7 @@ public class DefaultScene implements Scene {
             if (side instanceof Transparency
                     && oside instanceof Transparency)//transparent triangle
             {
-
-                Pair<Vector3, Double> ref = refract(b.direction, closestT.first().normal,
+                Pair<Math3dUtil.Vector3, Double> ref = refract(b.direction, closestT.first().normal,
                         ((Transparency) side).getN(b.lambda),
                         ((Transparency) oside).getN(b.lambda),
                         b.lambda);
@@ -119,33 +128,31 @@ public class DefaultScene implements Scene {
             } else if (side == null && oside == null)//nontransparent triangle
             {
                 if (forcesendtocamera) {
-                    for (Camera cam : cam_list) {
-                        Vector3 difusedirection = (cam.GetPosition().sub(intersectionPoint)).normalize();
+                    Math3dUtil.Vector3 difusedirection = (cam.GetPosition().sub(intersectionPoint)).normalize();
 
-                        b.origin = intersectionPoint;
-                        b.direction = difusedirection;
-                        cam.watch(b);
-                        return;
-                    }
+                    b.origin = intersectionPoint;
+                    b.direction = difusedirection;
+                    cam.watch(b);
+                    System.out.println(2);
+                    return;
                 }
 
-                Camera cam = cam_list.get(0);
-                Vector3 difusedirection = (cam.GetPosition().sub(intersectionPoint)).normalize();
+                Math3dUtil.Vector3 difusedirection = (cam.GetPosition().sub(intersectionPoint)).normalize();
 
-                //b = new LightSource.Beam(intersectionPoint, difusedirection, b.lambda, b.source);
                 b.origin = intersectionPoint;
                 b.direction = difusedirection;
 
-                camerabema = true;
+                cameraBeam = true;
                 ignoredT = closestT.first();
             } else if (side instanceof TotalReflection || oside instanceof TotalReflection) {
-                Vector3 ref = reflect(b.direction, closestT.first().normal);
+                Math3dUtil.Vector3 ref = reflect(b.direction, closestT.first().normal);
 
                 b.origin = intersectionPoint;
                 b.direction = ref.normalize();
 
                 ignoredT = closestT.first();
-            } else {
+            } else//idk lol
+            {
                 System.out.println("DefaultScene undefined behavior");
                 return;
             }
@@ -154,4 +161,3 @@ public class DefaultScene implements Scene {
         } while (!(iter >= maxiter));
     }
 }
-

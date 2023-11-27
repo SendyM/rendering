@@ -14,9 +14,7 @@ public abstract class LightSource implements java.io.Serializable{
 
     public abstract Beam getNextBeam();
 
-    public abstract boolean watch(Beam b);
-    
-    public LightSource(){}
+
 
     //Useful but not necessary
     public SpectralPowerDistribution getSpectralPowerDistribution(){

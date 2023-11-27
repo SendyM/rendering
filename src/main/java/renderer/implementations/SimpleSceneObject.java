@@ -27,8 +27,6 @@ import static math_and_utils.Math3dUtil.createNormalTransofrmMatrix;
  * SceneObject that contains List of Triangles, 2 SceneObjectProperty - 1 for
  * front and 1 for back, which are used by all contained Triangles, and
  * Transformation matrix to be used on all triangles
- *
- * @author rasto
  */
 public class SimpleSceneObject implements SceneObject {
 
@@ -126,13 +124,13 @@ public class SimpleSceneObject implements SceneObject {
                     // -1 because *.obj indexing starts at 1, not at 0 as in Java or C/++
                     addTriangle(v3l.get((int) A - 1), v3l.get((int) A2 - 1), v3l.get((int) A3 - 1));
                     triang.get(triang.size() - 1).id = Long.toString(triang.size() - 1);
-                    if (use_provided_normals == true) {
+                    if (use_provided_normals) {
                         triang.get(triang.size() - 1).normal = normalv3l.get((int) C - 1);
                     }
                     sc.close();
                 }
 
-                if (line.startsWith("vn ") && use_provided_normals == true) {
+                if (line.startsWith("vn ") && use_provided_normals) {
                     sc = new Scanner(line);
                     sc.next();
 
@@ -144,8 +142,6 @@ public class SimpleSceneObject implements SceneObject {
                     sc.close();
                 }
             }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }

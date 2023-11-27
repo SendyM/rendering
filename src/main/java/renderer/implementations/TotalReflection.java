@@ -7,10 +7,6 @@ package renderer.implementations;
 
 import renderer.SceneObjectProperty;
 
-/**
- *
- * @author rasto
- */
 public class TotalReflection implements SceneObjectProperty{
     
 }
