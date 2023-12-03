@@ -25,7 +25,6 @@ import camera.Camera;
 import camera.implementations.SimpleCamera;
 import renderer.implementations.DefaultScene;
 import renderer.implementations.SimpleSceneObject;
-import renderer.implementations.SimplifiedRenderer_Scene;
 
 import javax.imageio.ImageIO;
 import java.awt.*;

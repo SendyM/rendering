@@ -1,11 +1,12 @@
-package light.implementations;
+package beam.implementations;
 
+import beam.BeamInterface;
 import light.LightSource;
 import math_and_utils.Math3dUtil;
 
 import static math_and_utils.Math3dUtil.anglesToVector3;
 
-public class Beam {
+public class Beam implements BeamInterface {
     //origin of beam
     public Math3dUtil.Vector3 origin;
     //direction of beam, should be normalized
@@ -29,4 +30,13 @@ public class Beam {
         source = s;
     }
 
+    @Override
+    public Math3dUtil.Vector3 getOrigin() {
+        return origin;
+    }
+
+    @Override
+    public Math3dUtil.Vector3 getDirection() {
+        return direction;
+    }
 }

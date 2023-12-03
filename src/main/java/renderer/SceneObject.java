@@ -5,7 +5,7 @@
  */
 package renderer;
 
-import light.implementations.Beam;
+import beam.BeamInterface;
 import math_and_utils.Math3dUtil;
 import math_and_utils.Pair;
 
@@ -23,7 +23,7 @@ public interface SceneObject {
      * @param b
      * @return List of triangles and their distances form b origin
      */
-    public List<Pair<Triangle, Double>> intersects(Beam b);
+    List<Pair<Triangle, Double>> intersects(BeamInterface b);
     
     /**
      * 
@@ -31,7 +31,7 @@ public interface SceneObject {
      * @param direction direction
      * @return SceneObjectProperty of Triangle T that is on side from which direction enters triangle
      */
-    public SceneObjectProperty getSideProperty(Triangle t,Math3dUtil.Vector3 direction);
+    SceneObjectProperty getSideProperty(Triangle t,Math3dUtil.Vector3 direction);
     
     /**
      * 
@@ -39,5 +39,5 @@ public interface SceneObject {
      * @param direction direction
      * @return SceneObjectProperty of Triangle T that is on side from which direction exits triangle
      */
-    public SceneObjectProperty getOtherSideProperty(Triangle t,Math3dUtil.Vector3 direction);
+    SceneObjectProperty getOtherSideProperty(Triangle t,Math3dUtil.Vector3 direction);
 }

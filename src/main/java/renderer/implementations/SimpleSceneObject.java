@@ -5,7 +5,7 @@
  */
 package renderer.implementations;
 
-import light.implementations.Beam;
+import beam.BeamInterface;
 import math_and_utils.Math3dUtil.Vector3;
 import math_and_utils.Pair;
 import renderer.SceneObject;
@@ -13,7 +13,6 @@ import renderer.SceneObjectProperty;
 import renderer.Triangle;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -37,26 +36,14 @@ public class SimpleSceneObject implements SceneObject {
     public double[][] matrix = {{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}};
     public double[][] nmatrix = createNormalTransofrmMatrix(matrix);
 
-    /**
-     * SceneObject made of 1 triangle ABC - triangle
-     *
-     * @param A
-     * @param B
-     * @param C
-     */
+
+    //SceneObject made of 1 triangle ABC - triangle
     public SimpleSceneObject(Vector3 A, Vector3 B, Vector3 C) {
         triang.add(new Triangle(A, B, C));
         triang.get(triang.size() - 1).parent = this;
     }
 
-    /**
-     * SceneObject made of 2 triangles ABC and ACD - square
-     *
-     * @param A
-     * @param B
-     * @param C
-     * @param D
-     */
+    //SceneObject made of 2 triangles ABC and ACD - square
     public SimpleSceneObject(Vector3 A, Vector3 B, Vector3 C, Vector3 D) {
         triang.add(new Triangle(A, B, C));
         triang.get(triang.size() - 1).parent = this;
@@ -66,13 +53,11 @@ public class SimpleSceneObject implements SceneObject {
     }
 
     /**
-     * http://www.opengl-tutorial.org/beginners-tutorials/tutorial-7-model-loading/
-     *
-     * @param objFile .obj file to load
+     * @param objFile              .obj file to load
      * @param use_provided_normals if true, triangles will have normals loaded
-     * and set form file, if false, normals will be computed
-     * @param m transform matrix, normal transform matrix will be computed and
-     * used for normal transforming
+     *                             and set form file, if false, normals will be computed
+     * @param m                    transform matrix, normal transform matrix will be computed and
+     *                             used for normal transforming
      */
     public SimpleSceneObject(String objFile, boolean use_provided_normals, double[][] m) {
         if (m != null) {
@@ -147,26 +132,14 @@ public class SimpleSceneObject implements SceneObject {
         }
     }
 
-    /**
-     * Add triangle at end of Triangle List
-     *
-     * @param A
-     * @param B
-     * @param C
-     */
+    //Add triangle at end of Triangle List
     public void addTriangle(Vector3 A, Vector3 B, Vector3 C) {
         triang.add(new Triangle(A, B, C));
         triang.get(triang.size() - 1).parent = this;
     }
 
-    /**
-     * Iterate thru all triangles and find intersecting
-     *
-     * @param b Beam, see {@link Beam}.
-     * @return List of pairs containing Triangle as first parameter and distance
-     * from b.origin as second
-     */
-    public List<Pair<Triangle, Double>> intersects(Beam b) {
+    //Iterate through all triangles and find intersecting
+    public List<Pair<Triangle, Double>> intersects(BeamInterface b) {
         List<Pair<Triangle, Double>> l = new ArrayList();
 
         for (Triangle t : triang) {
@@ -178,14 +151,7 @@ public class SimpleSceneObject implements SceneObject {
         return l;
     }
 
-
-    /**
-     * get property of side that was hit from direction
-     *
-     * @param t
-     * @param direction
-     * @return
-     */
+    //get property of side that was hit from direction
     public SceneObjectProperty getSideProperty(Triangle t, Vector3 direction) {
         if (t.normal.dot(direction) < 0)//from direction that normal extends to
         {
@@ -206,11 +172,6 @@ public class SimpleSceneObject implements SceneObject {
         }
     }
 
-    /**
-     *
-     * @return String with 5*NumberOfTriangles rows, containing triangle data
-     * for all triangles
-     */
     public String toString() {
         StringBuilder sb = new StringBuilder();
 

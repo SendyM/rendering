@@ -1,5 +1,6 @@
 package light.implementations;
 
+import beam.implementations.Beam;
 import color.SpectralPowerDistribution;
 import light.LightSource;
 import math_and_utils.Math3dUtil.Vector3;

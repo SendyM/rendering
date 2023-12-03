@@ -1,7 +1,8 @@
 package camera;
 
+import beam.implementations.CameraBeam;
 import math_and_utils.Math3dUtil.*;
-import light.implementations.Beam;
+import beam.implementations.Beam;
 
 public abstract class Camera implements java.io.Serializable{
     protected Vector3 position;
@@ -11,5 +12,7 @@ public abstract class Camera implements java.io.Serializable{
 
     public int[][][] getPixels(){return pixels;}
 
-    public abstract boolean watch(Beam b);
+    public abstract void watch(Beam b);
+
+    public abstract CameraBeam getNextBeam();
 }

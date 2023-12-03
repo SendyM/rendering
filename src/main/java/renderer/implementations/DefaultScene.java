@@ -5,8 +5,10 @@
  */
 package renderer.implementations;
 
+import beam.BeamInterface;
 import camera.Camera;
-import light.implementations.Beam;
+import beam.implementations.CameraBeam;
+import beam.implementations.Beam;
 import light.LightSource;
 import math_and_utils.Math3dUtil.Vector3;
 import math_and_utils.Pair;
@@ -15,21 +17,13 @@ import renderer.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import static math_and_utils.Math3dUtil.reflect;
-import static math_and_utils.Math3dUtil.refract;
-
 public class DefaultScene implements Scene {
     public List<Camera> cam_list;
-
     public List<LightSource> ls_list;
-
     public List<SceneObject> so_list;
 
     //max number of iterations
-    public int maxiter = 6;
-
-    //if enabled, beams will be sent to camera even if they shouldn't
-    public boolean forcesendtocamera = false;
+    public int maxiter = 1;
 
     // If enabled, reflected beams will lose some power
     public boolean refl_fading = true;
@@ -54,104 +48,75 @@ public class DefaultScene implements Scene {
 
     public void next() {
         Beam b = ls_list.get(0).getNextBeam();
+        CameraBeam cb = cam_list.get(0).getNextBeam();
         Triangle ignoredT = null;
         double iter = 0;
 
-        //double sl = b.lambda;
         boolean camerabema = false;
-        //System.out.print(b.lambda + " ");
+
+        ArrayList<Vector3> intersectionPointsCam = new ArrayList<>();
+        ArrayList<Vector3> intersectionPoints = new ArrayList<>();
+        Pair<Triangle, Double> closestT;
+        Pair<Triangle, Double> cameraClosestT;
 
         do {
-            Pair<Triangle, Double> closestT = Pair.createPair(null, Double.MAX_VALUE);
+            closestT = getClosestT(b, ignoredT); //Pair.createPair(null, Double.MAX_VALUE);
+            cameraClosestT = getClosestT(cb, ignoredT);
 
-            for (SceneObject so : so_list) {
-                List<Pair<Triangle, Double>> contact = so.intersects(b);
-
-                for (Pair<Triangle, Double> pair : contact) {
-                    if (pair.second() < closestT.second() && pair.first() != null && pair.first() != ignoredT) {
-                        closestT = Pair.createPair(pair.first(), pair.second());
-                    }
-                }
-            }
             //if beam doesn't hit any triangle
             if (closestT.first() == null) {
                 //if beam should go to camera
                 if (camerabema) {
-                    //send beam to cameras
                     for (Camera cam : cam_list) {
                         cam.watch(b);
                     }
                 }
                 return;
-            } else //if beam hit something
-            {
-                //if beam should have had free view of camera, but it doesnt
-                if (camerabema) {
-                    return;
-                }
             }
-
             Vector3 intersectionPoint = b.origin.add((b.direction).scale(closestT.second()));
+            Vector3 intersectionPointCam = cb.origin.add((cb.direction).scale(cameraClosestT.second()));
 
-            SceneObjectProperty side = closestT.first().parent.getSideProperty(closestT.first(), b.direction);
-            SceneObjectProperty oside = closestT.first().parent.getOtherSideProperty(closestT.first(), b.direction);
+            intersectionPointsCam.add(intersectionPointCam);
+            intersectionPoints.add(intersectionPoint);
 
-            //refraction
-            if (side instanceof Transparency
-                    && oside instanceof Transparency)//transparent triangle
-            {
+            Vector3 difusedirectionCam = (intersectionPointCam.sub(intersectionPoint)).normalize();
+            b = new Beam(intersectionPoint, difusedirectionCam, b.lambda, b.source);
 
-                Pair<Vector3, Double> ref = refract(b.direction, closestT.first().normal,
-                        ((Transparency) side).getN(b.lambda),
-                        ((Transparency) oside).getN(b.lambda),
-                        b.lambda);
-
-                if (ref.first().x == 0 && ref.first().y == 0 && ref.first().z == 0) {
-                    System.out.println("x");
+            if (refl_fading) { //FIXME: this doesn't work
+                b.power -= 0.2;
+                if (b.power <= 0) {
                     return;
                 }
-
-                b.origin = intersectionPoint;
-                b.direction = ref.first().normalize();
-                b.lambda = ref.second();
-
-                ignoredT = closestT.first();
-            } else if (side == null && oside == null)//nontransparent triangle
-            {
-                if (forcesendtocamera) {
-                    for (Camera cam : cam_list) {
-                        Vector3 difusedirection = (cam.GetPosition().sub(intersectionPoint)).normalize();
-
-                        b.origin = intersectionPoint;
-                        b.direction = difusedirection;
-                        cam.watch(b);
-                        return;
-                    }
-                }
-
-                Camera cam = cam_list.get(0);
-                Vector3 difusedirection = (cam.GetPosition().sub(intersectionPoint)).normalize();
-
-                //b = new LightSource.Beam(intersectionPoint, difusedirection, b.lambda, b.source);
-                b.origin = intersectionPoint;
-                b.direction = difusedirection;
-
-                camerabema = true;
-                ignoredT = closestT.first();
-            } else if (side instanceof TotalReflection || oside instanceof TotalReflection) {
-                Vector3 ref = reflect(b.direction, closestT.first().normal);
-
-                b.origin = intersectionPoint;
-                b.direction = ref.normalize();
-
-                ignoredT = closestT.first();
-            } else {
-                System.out.println("DefaultScene undefined behavior");
-                return;
             }
+
+            camerabema = true;
+            ignoredT = closestT.first();
             iter++;
 
         } while (!(iter >= maxiter));
+
+        for (Camera cam : cam_list) {
+            //TODO: make it more general so that it works with more iterations
+            if (getClosestT(b, ignoredT).first() == cameraClosestT.first()) {
+                Vector3 difusedirectionToCam = (cam.GetPosition().sub(intersectionPointsCam.get(0))).normalize();
+                b = new Beam(intersectionPointsCam.get(0), difusedirectionToCam, b.lambda, b.source);
+                cam.watch(b);
+            }
+        }
+    }
+
+    Pair<Triangle, Double> getClosestT(BeamInterface b, Triangle ignoredT) {
+        Pair<Triangle, Double> closestT = Pair.createPair(null, Double.MAX_VALUE);
+        for (SceneObject so : so_list) {
+            List<Pair<Triangle, Double>> contact = so.intersects(b);
+
+            for (Pair<Triangle, Double> pair : contact) {
+                if (pair.second() < closestT.second() && pair.first() != null && pair.first() != ignoredT) {
+                    closestT = Pair.createPair(pair.first(), pair.second());
+                }
+            }
+        }
+        return closestT;
     }
 }
 

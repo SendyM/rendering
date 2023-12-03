@@ -1,6 +1,7 @@
 package renderer;
 
-import light.implementations.Beam;
+import beam.BeamInterface;
+import beam.implementations.Beam;
 import math_and_utils.Math3dUtil.Vector3;
 
 import java.util.Optional;
@@ -110,9 +111,9 @@ public class Triangle {
      * @param b Beam, see {@link Beam}.
      * @return nonempty optional containing distance between b.origin and this triangle if they intersect. Empty optional otherwise
      */
-    public Optional<Double> isIntersecting(Beam b){
+    public Optional<Double> isIntersecting(BeamInterface b){
         //IntersectInfo ii = MollerTrumbore(b.origin, b.direction);
-        return isIntersecting(b.origin, b.direction);
+        return isIntersecting(b.getOrigin(), b.getDirection());
     }
     
     /**

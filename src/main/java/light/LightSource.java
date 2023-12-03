@@ -1,7 +1,7 @@
 package light;
 
 import color.SpectralPowerDistribution;
-import light.implementations.Beam;
+import beam.implementations.Beam;
 
 public abstract class LightSource implements java.io.Serializable{
     protected SpectralPowerDistribution spd;
@@ -13,8 +13,6 @@ public abstract class LightSource implements java.io.Serializable{
     }
 
     public abstract Beam getNextBeam();
-
-
 
     //Useful but not necessary
     public SpectralPowerDistribution getSpectralPowerDistribution(){
