@@ -8,11 +8,13 @@ public abstract class Camera implements java.io.Serializable{
     protected Vector3 position;
     protected int[][][] pixels;
 
+    public abstract void watch(Beam b);
+
+    public abstract CameraBeam getNextBeam();
+
+    //TODO: I know it`s not supposed to be like this, but I cant really think of a better way, YET.
     public Vector3 GetPosition(){return position;}
 
     public int[][][] getPixels(){return pixels;}
 
-    public abstract void watch(Beam b);
-
-    public abstract CameraBeam getNextBeam();
 }

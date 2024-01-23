@@ -82,13 +82,6 @@ public class DefaultScene implements Scene {
             Vector3 difusedirectionCam = (intersectionPointCam.sub(intersectionPoint)).normalize();
             b = new Beam(intersectionPoint, difusedirectionCam, b.lambda, b.source);
 
-            if (refl_fading) { //FIXME: this doesn't work
-                b.power -= 0.2;
-                if (b.power <= 0) {
-                    return;
-                }
-            }
-
             camerabema = true;
             ignoredT = closestT.first();
             iter++;
@@ -99,6 +92,7 @@ public class DefaultScene implements Scene {
             //TODO: make it more general so that it works with more iterations
             if (getClosestT(b, ignoredT).first() == cameraClosestT.first()) {
                 Vector3 difusedirectionToCam = (cam.GetPosition().sub(intersectionPointsCam.get(0))).normalize();
+
                 b = new Beam(intersectionPointsCam.get(0), difusedirectionToCam, b.lambda, b.source);
                 cam.watch(b);
             }
